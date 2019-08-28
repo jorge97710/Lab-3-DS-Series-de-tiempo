@@ -9,6 +9,12 @@ library(tseries)
 library(fUnitRoots)
 library(ggfortify)
 library(ggplot2)
+
+library(forecast)
+library(tseries)
+library(fUnitRoots)
+library(ggfortify)
+
 data <- read.csv(file="datosimp.csv", header=TRUE)
 
 View(data)
@@ -116,16 +122,159 @@ cuantitativa <- data[,-1]
 cuantitativa <- cuantitativa[,-1]
 View(cuantitativa)
 
-cor(cuantitativa)
+res <- cor(cuantitativa)
+round(res, 2)
+
+
+#install.packages("Hmisc")
+library("Hmisc")
+res2 <- rcorr(as.matrix(cuantitativa))
+res2
+# Extract the correlation coefficients
+res2$r
+# Extract p-values
+res2$P
+
+# ++++++++++++++++++++++++++++
+# flattenCorrMatrix
+# ++++++++++++++++++++++++++++
+# cormat : matrix of the correlation coefficients
+# pmat : matrix of the correlation p-values
+flattenCorrMatrix <- function(cormat, pmat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut],
+    p = pmat[ut]
+  )
+}
+flattenCorrMatrix(res2$r, res2$P)
+
+install.packages("corrplot")
+library(corrplot)
+corrplot(res, type = "upper",
+         tl.col = "black", tl.srt = 45)
+
+##ts
+
+##Serie de tiempo para gasolina superior
+superior <- ts(data$GasSuperior, start=c(2001, 1), end=c(2019, 6), frequency=12) 
+
+##analisis gasolina superior
+#Saber cuando empieza la serie y cuando termina
+start(superior)
+end(superior)
+#Saber la frecuencia de la serie
+frequency(superior)
+
+plot(superior)
+abline(reg=lm(superior~time(superior)), col=c("red"))
+
+
+plot(aggregate(superior,FUN=mean))
+dec.Sup<-decompose(superior)
+plot(dec.Sup)
+plot(dec.Sup$seasonal)
+
+
+#Aplicaremos una transformación logar�?tmica
+logSup <- log(superior)
+plot(decompose(logSup))
+
+
+#Ver el gráfico de la serie
+plot(logSup)
+
+
+#Para saber si hay ra�?ces unitarias
+adfTest(logSup)
+adfTest(diff(logSup))
+#Gráfico de autocorrelación
+acf(logSup)
+# funciones de autocorrelación y autocorrelación parcial
+acf(diff(logSup),12)
+pacf(diff(logSup))
+
+# Hacer el modelo
+
+auto.arima(superior)
+
+fit <- arima(log(superior), c(0, 1, 1),seasonal = list(order = c(0, 1, 1), period = 12))
+pred <- predict(fit, n.ahead = 10*12)
+ts.plot(superior,2.718^pred$pred, log = "y", lty = c(1,3))
+
+fit2 <- arima(log(superior), c(2, 1, 1),seasonal = list(order = c(0, 1, 0), period = 12))
+
+forecastAP <- forecast(fit2, level = c(95), h = 120)
+autoplot(forecastAP)
 
 
 
+##------------------------------------------------------------------
+##Serie de tiempo para gasolina regular
+regular <- ts(data$GasRegular, start=c(2001, 1), end=c(2019, 6), frequency=12) 
+plot(regular)
 
 
+##------------------------------------------------------------------
+#Uniendo diesel y diesel ls 
+library(dplyr)
+data$newDiesel<- data %>% mutate(newDiesel = coalesce(Diesel,DieselLS)) %>%
+  select( newDiesel)
+
+##Serie de tiempo para gasolina diesel
+diesel <- ts(data$newDiesel, start=c(2001, 1), end=c(2019, 6), frequency=12) 
+plot(diesel)
+
+##analisis gasolina superior
+#Saber cuando empieza la serie y cuando termina
+start(diesel)
+end(diesel)
+#Saber la frecuencia de la serie
+frequency(diesel)
+
+plot(diesel)
+abline(reg=lm(diesel~time(diesel)), col=c("red"))
 
 
+plot(aggregate(diesel,FUN=mean))
+dec.Dis<-decompose(diesel)
+plot(dec.Dis)
+plot(dec.Dis$seasonal)
+##no presenta estacionalidad�? varia practicamente igual siempre. 
+##si presenta tendencia, va en aumento la importacion 
+
+#Aplicaremos una transformación logar�?tmica
+logdis <- log(diesel)
+plot(decompose(logdis))
 
 
+#Ver el gráfico de la serie
+plot(logdis)
+
+
+#Para saber si hay ra�?ces unitarias
+adfTest(logdis)
+adfTest(diff(logdis))
+#Gráfico de autocorrelación
+acf(logdis)
+# funciones de autocorrelación y autocorrelación parcial
+acf(diff(logdis),12)
+pacf(diff(logdis))
+
+# Hacer el modelo
+
+auto.arima(diesel)
+
+fit <- arima(log(diesel), c(0, 1, 1),seasonal = list(order = c(0, 1, 1), period = 12))
+pred <- predict(fit, n.ahead = 10*12)
+ts.plot(superior,2.718^pred$pred, log = "y", lty = c(1,3))
+
+fit2 <- arima(log(diesel), c(2, 1, 1),seasonal = list(order = c(0, 1, 0), period = 12))
+
+forecastAP <- forecast(fit2, level = c(95), h = 120)
+autoplot(forecastAP)
 
 
 
