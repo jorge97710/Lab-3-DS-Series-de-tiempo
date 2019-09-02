@@ -216,7 +216,24 @@ autoplot(forecastAP)
 regular <- ts(data$GasRegular, start=c(2001, 1), end=c(2019, 6), frequency=12) 
 plot(regular)
 
+# loading packages
+library(forecast)
+library(Metrics)
+# splitting data into train and valid sets
+train = regular[1:100]
+valid = regular[101:nrow(data)]
+model = auto.arima(train)
 
+
+
+# model summary
+summary(model)
+
+# forecasting
+forecast = predict(model,44)
+plot(forecast)
+# evaluation
+rmse(valid$International.airline.passengers, forecast$pred)
 ##------------------------------------------------------------------
 #Uniendo diesel y diesel ls 
 library(dplyr)
@@ -276,6 +293,7 @@ fit2 <- arima(log(diesel), c(2, 1, 1),seasonal = list(order = c(0, 1, 0), period
 forecastAP <- forecast(fit2, level = c(95), h = 120)
 autoplot(forecastAP)
 coeftest(fit)
+library(lmtest)
 
 Box.test(resid(fit), lag = 1, type = c("Ljung-Box"), fitdf = 0)
 
@@ -283,11 +301,13 @@ acf(fit$residuals)
 
 Box.test(resid(fit), lag = 1, type = c("Ljung-Box"), fitdf = 0)
 #vs 2
+
 data$Diesel <- na.replace(data$Diesel,0)
 data$DieselLS <- na.replace(data$DieselLS,0)
 data$DieselULS <- na.replace(data$DieselULS,0)
 data$Diesel <- data$Diesel+data$DieselLS+data$DieselULS
 data <- within(data,rm("DieselLS", "DieselULS"))
+
 descdist(data$Diesel)
 years <- table(data$Anio)
 seriedetiempo <- ts(data$Diesel, start=c(2001, 1), end=c(2019, 6), frequency=12) 
