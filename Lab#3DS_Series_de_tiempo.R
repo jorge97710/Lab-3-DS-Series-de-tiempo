@@ -374,11 +374,10 @@ fit2sup <- arima(log(gasolinaSup), c(1, 1, 1),seasonal = list(order = c(2, 1, 1)
 forecastAPsup <- forecast(fit2sup, level = c(95), h = 120)
 autoplot(forecastAPsup)
 coeftest(fit2sup)
-#modelo 1
-Box.test(resid(fit), lag = 1, type = c("Ljung-Box"), fitdf = 0)
-#modelo 2
-Box.test(resid(fit2sup), lag = 1, type = c("Ljung-Box"), fitdf = 0)
-acf(fit2sup$residuals)
+modelo2 <- fit2sup
+modelo1 <- fit
+Box.test(resid(modelo1), lag = 1, type = c("Ljung-Box"), fitdf = 0)
+Box.test(resid(modelo2), lag = 1, type = c("Ljung-Box"), fitdf = 0)
 
 
 
