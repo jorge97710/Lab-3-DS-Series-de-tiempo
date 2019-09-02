@@ -23,7 +23,7 @@ class(data)
 ##graficos 
 
 summary(data)
-barplot(table(data$Anio),main = "Cantidad segun a�o")
+barplot(table(data$Anio),main = "Cantidad segun año")
 barplot(table(data$Mes),main = "Cantidad segun mes")
 
 qplot(data$GasAviacion, geom="histogram",main = "Histograma de glp") 
@@ -178,21 +178,21 @@ plot(dec.Sup)
 plot(dec.Sup$seasonal)
 
 
-#Aplicaremos una transformación logar�?tmica
+#Aplicaremos una transformaciÃ³n logarÃ?tmica
 logSup <- log(superior)
 plot(decompose(logSup))
 
 
-#Ver el gráfico de la serie
+#Ver el grÃ¡fico de la serie
 plot(logSup)
 
 
-#Para saber si hay ra�?ces unitarias
+#Para saber si hay raÃ?ces unitarias
 adfTest(logSup)
 adfTest(diff(logSup))
-#Gráfico de autocorrelación
+#GrÃ¡fico de autocorrelaciÃ³n
 acf(logSup)
-# funciones de autocorrelación y autocorrelación parcial
+# funciones de autocorrelaciÃ³n y autocorrelaciÃ³n parcial
 acf(diff(logSup),12)
 pacf(diff(logSup))
 
@@ -242,24 +242,24 @@ plot(aggregate(diesel,FUN=mean))
 dec.Dis<-decompose(diesel)
 plot(dec.Dis)
 plot(dec.Dis$seasonal)
-##no presenta estacionalidad�? varia practicamente igual siempre. 
+##no presenta estacionalidad¿? varia practicamente igual siempre. 
 ##si presenta tendencia, va en aumento la importacion 
 
-#Aplicaremos una transformación logar�?tmica
+#Aplicaremos una transformaciÃ³n logarÃ?tmica
 logdis <- log(diesel)
 plot(decompose(logdis))
 
 
-#Ver el gráfico de la serie
+#Ver el grÃ¡fico de la serie
 plot(logdis)
 
 
-#Para saber si hay ra�?ces unitarias
+#Para saber si hay raÃ?ces unitarias
 adfTest(logdis)
 adfTest(diff(logdis))
-#Gráfico de autocorrelación
+#GrÃ¡fico de autocorrelaciÃ³n
 acf(logdis)
-# funciones de autocorrelación y autocorrelación parcial
+# funciones de autocorrelaciÃ³n y autocorrelaciÃ³n parcial
 acf(diff(logdis),12)
 pacf(diff(logdis))
 
@@ -275,7 +275,13 @@ fit2 <- arima(log(diesel), c(2, 1, 1),seasonal = list(order = c(0, 1, 0), period
 
 forecastAP <- forecast(fit2, level = c(95), h = 120)
 autoplot(forecastAP)
+coeftest(fit)
 
+Box.test(resid(fit), lag = 1, type = c("Ljung-Box"), fitdf = 0)
+
+acf(fit$residuals)
+
+Box.test(resid(fit), lag = 1, type = c("Ljung-Box"), fitdf = 0)
 
 
 
