@@ -282,7 +282,103 @@ Box.test(resid(fit), lag = 1, type = c("Ljung-Box"), fitdf = 0)
 acf(fit$residuals)
 
 Box.test(resid(fit), lag = 1, type = c("Ljung-Box"), fitdf = 0)
-
+#vs 2
+data$Diesel <- na.replace(data$Diesel,0)
+data$DieselLS <- na.replace(data$DieselLS,0)
+data$DieselULS <- na.replace(data$DieselULS,0)
+data$Diesel <- data$Diesel+data$DieselLS+data$DieselULS
+data <- within(data,rm("DieselLS", "DieselULS"))
+descdist(data$Diesel)
+years <- table(data$Anio)
+seriedetiempo <- ts(data$Diesel, start=c(2001, 1), end=c(2019, 6), frequency=12) 
+plot(seriedetiempo)
+abline(reg=lm(seriedetiempo~time(seriedetiempo)), col=c("red"))
+plot(aggregate(seriedetiempo,FUN=mean))
+dec.diesel<-decompose(seriedetiempo)
+plot(dec.diesel)
+plot(dec.diesel$seasonal)
+#transformacion logaritmica
+tiempodelogaritmo <- log(seriedetiempo)
+plot(decompose(tiempodelogaritmo))
+#raices unitarias
+adfTest(tiempodelogaritmo)
+adfTest(diff(tiempodelogaritmo))
+#autocorrelacion
+acf(tiempodelogaritmo)
+auto.arima(seriedetiempo)
+fit <- arima(log(seriedetiempo), c(3, 1, 1),seasonal = list(order = c(1, 0, 1), period = 12))
+pred <- predict(fit, n.ahead = 10*12)
+ts.plot(seriedetiempo,2.718^pred$pred, log = "y", lty = c(1,3))
+fit2 <- arima(log(seriedetiempo), c(3, 1, 1),seasonal = list(order = c(3, 1, 1), period = 12))
+forecastAP <- forecast(fit2, level = c(95), h = 120)
+autoplot(forecastAP)
+#modelo 1:comprobando independencia de residuos y suma de cuadrados modelo 1
+Box.test(resid(fit), lag = 1, type = c("Ljung-Box"), fitdf = 0)
+#modelo 2:comprobando independencia de residuos y suma de cuadrados 
+Box.test(resid(fit2), lag = 1, type = c("Ljung-Box"), fitdf = 0)
+e <- tsCV(seriedetiempo, forecastfunction = naive,h=1)
+plot(e)
+gasolina<- ts(data$GasRegular, start=c(2001, 1), end=c(2018, 12), frequency=12) 
+plot(gasolina)
+abline(reg=lm(gasolina~time(gasolina)), col=c("red"))
+plot(aggregate(gasolina,FUN=mean))
+dec.reg<-decompose(gasolina)
+plot(dec.reg)
+plot(dec.diesel$seasonal)
+#transformacion logaritmica
+logreg <- log(gasolina)
+plot(decompose(logreg))
+#raices unitarias
+adfTest(logreg)
+adfTest(diff(logreg))
+#autocorrelacion
+acf(logreg)
+pacf(logreg)
+auto.arima(gasolina)
+fitreg <- arima(log(gasolina), c(3, 1, 1),seasonal = list(order = c(1, 0, 1), period = 12))
+predreg <- predict(fitreg, n.ahead = 10*12)
+ts.plot(gasolina,2.718^predreg$pred, log = "y", lty = c(1,3))
+fit2reg <- arima(log(gasolina), c(1, 1, 1),seasonal = list(order = c(2, 1, 1), period = 12))
+forecastAPreg <- forecast(fit2reg, level = c(95), h = 120)
+autoplot(forecastAPreg)
+forecastAPreg
+coeftest(fit2reg)
+#comparando modelos
+#modelo 2
+Box.test(resid(fit2reg), lag = 1, type = c("Ljung-Box"), fitdf = 0)
+acf(fit2reg$residuals)
+fit2reg
+accuracy(fit2reg)
+# modelo 1
+Box.test(resid(fit), lag = 1, type = c("Ljung-Box"), fitdf = 0)
+gasolinaSup <- ts(data$GasSuperior, start=c(2001, 1), end=c(2018, 12), frequency=12) 
+plot(gasolina)
+abline(reg=lm(gasolinaSup~time(gasolinaSup)), col=c("red"))
+plot(aggregate(gasolinaSup,FUN=mean))
+dec.sup<-decompose(gasolinaSup)
+plot(dec.sup)
+plot(dec.sup$seasonal)
+#transformacion logaritmica
+logsup <- log(gasolinaSup)
+plot(decompose(logsup))
+#raices unitarias
+adfTest(logsup)
+adfTest(diff(logsup))
+acf(logsup)
+pacf(logsup)
+auto.arima(gasolinaSup)
+fitsup <- arima(log(gasolina), c(3, 1, 1),seasonal = list(order = c(1, 0, 1), period = 12))
+predsup <- predict(fitsup, n.ahead = 10*12)
+ts.plot(gasolinaSup,2.718^predsup$pred, log = "y", lty = c(1,3))
+fit2sup <- arima(log(gasolinaSup), c(1, 1, 1),seasonal = list(order = c(2, 1, 1), period = 12))
+forecastAPsup <- forecast(fit2sup, level = c(95), h = 120)
+autoplot(forecastAPsup)
+coeftest(fit2sup)
+#modelo 1
+Box.test(resid(fit), lag = 1, type = c("Ljung-Box"), fitdf = 0)
+#modelo 2
+Box.test(resid(fit2sup), lag = 1, type = c("Ljung-Box"), fitdf = 0)
+acf(fit2sup$residuals)
 
 
 
